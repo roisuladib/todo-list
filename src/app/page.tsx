@@ -35,7 +35,7 @@ export default async function Home() {
       ...task,
       id: index + 1,
       createdAt: getRandomDateInMonthISO(),
-    }));
+    })).reverse();
   }
 
   return <TaskViewSwitcher initialTasks={initialTasks} />;
