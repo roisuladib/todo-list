@@ -121,7 +121,7 @@ const EditableDevelopersCell = ({ getValue, row, column, table }: CellContext<Ta
       type="button"
       onClick={() => setIsEditing(true)}
       className="w-full cursor-text rounded transition-colors hover:bg-content2">
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap">
         {initialValue.length > 0 ? (
           initialValue
             .split(',')

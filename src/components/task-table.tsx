@@ -10,6 +10,7 @@ import {
   getCoreRowModel,
   getGroupedRowModel,
   type SortingState,
+  TableMeta,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -40,7 +41,7 @@ export function TaskTable<TData, TValue>({
     onSortingChange: setSorting,
     state: { sorting },
     meta: {
-      updateData: (rowIndex, columnId, value) => {
+      updateData: (rowIndex: number, columnId: number, value: unknown) => {
         console.log(rowIndex, columnId, value);
         const task = tasks[rowIndex];
         if (!task) return;

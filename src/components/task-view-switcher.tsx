@@ -18,7 +18,7 @@ import { useTaskFilters } from '^/hooks/use-task-filters';
 import { type Task, TaskPriority, TaskStatus, TaskType } from '^/types';
 
 export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[] }) {
-  const { tasks, hasHydrated, setTasks, addTask, updateTask, getTaskById } = useTaskStore();
+  const { tasks, hasHydrated, setTasks, addTask } = useTaskStore();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
@@ -35,17 +35,19 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
   const handleTaskChange = () => {};
 
   const filteredTasks = tasks.filter(task => {
-    return (
-      (status ? task.status === status : true) &&
-      (selectedDevelopers?.length
-        ? task.developer
-            .split(',')
-            .map(d => d.trim())
-            .filter(d => d)
-            .some(dev => selectedDevelopers.includes(dev))
-        : true) &&
-      (search ? task.title.toLowerCase().includes(search.toLowerCase()) : true)
-    );
+    const matchStatus = status ? task.status === status : true;
+
+    const taskDevelopers = task.developer
+      .split(',')
+      .map(d => d.trim().toLowerCase())
+      .filter(Boolean);
+    const matchDeveloper = selectedDevelopers?.length
+      ? selectedDevelopers.every(dev => taskDevelopers.includes(dev))
+      : true;
+
+    const matchSearch = search ? task.title.toLowerCase().includes(search.toLowerCase()) : true;
+
+    return matchStatus && matchDeveloper && matchSearch;
   });
 
   const addNewTask = () => {

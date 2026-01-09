@@ -10,7 +10,7 @@ interface TaskFilterProps {
   setSearch: (search?: string) => void;
   developers: string[];
   selectedDevelopers: string[] | null;
-  setDevelopers: (search?: string[] | null) => void;
+  setDevelopers: (developers?: string[] | null) => void;
   className?: string;
 }
 
@@ -43,10 +43,9 @@ export default function TaskFilter({
         value=""
         onChange={e => {
           const dev = e.target.value;
-          if (dev && !selectedDevelopers?.includes(dev)) {
-            if (selectedDevelopers) {
-              setDevelopers([...selectedDevelopers, dev]);
-            }
+          const _selectedDevelopers = selectedDevelopers || [];
+          if (dev && !_selectedDevelopers?.includes(dev)) {
+            setDevelopers([..._selectedDevelopers, dev]);
           }
         }}
         className="inline-flex h-8 rounded-lg bg-default-100 px-3 outline-none">
