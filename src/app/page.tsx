@@ -31,7 +31,7 @@ export default async function Home() {
   let initialTasks = data.data;
 
   if (!initialTasks.some(task => Object.hasOwn(task, 'id') && Object.hasOwn(task, 'createdAt'))) {
-    initialTasks = initialTasks.map((task, index) => ({
+    initialTasks = initialTasks.reverse().map((task, index) => ({
       ...task,
       id: index + 1,
       createdAt: getRandomDateInMonthISO(),
