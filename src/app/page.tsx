@@ -30,12 +30,16 @@ export default async function Home() {
 
   let initialTasks = data.data;
 
-  if (!initialTasks.some(task => Object.hasOwn(task, 'id') && Object.hasOwn(task, 'createdAt'))) {
-    initialTasks = initialTasks.reverse().map((task, index) => ({
-      ...task,
-      id: index + 1,
-      createdAt: getRandomDateInMonthISO(),
-    })).reverse();
+  if (initialTasks?.length && !initialTasks.every(task => 'id' in task && 'createdAt' in task)) {
+    initialTasks = initialTasks
+      .slice()
+      .reverse()
+      .map((task, index) => ({
+        ...task,
+        id: index + 1,
+        createdAt: getRandomDateInMonthISO(),
+      }))
+      .reverse();
   }
 
   return <TaskViewSwitcher initialTasks={initialTasks} />;
