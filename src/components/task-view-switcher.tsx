@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { useQueryState } from 'nuqs';
+import { cn } from 'tailwind-variants';
 
 import { columns } from './columns';
 import { priorityColors, statusColors, typeColors } from './task-color';
@@ -93,6 +94,7 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
       developers={developers()}
       selectedDevelopers={selectedDevelopers}
       setDevelopers={s => setTaskFilters({ developers: s })}
+      className={cn({ 'px-4': view === 'kanban' })}
     />
   );
 
