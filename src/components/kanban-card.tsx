@@ -9,6 +9,7 @@ import { Chip } from './ui/chip';
 export function KanbanCard({ task }: { task: Task }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
+    data: { status: task.status },
   });
 
   const style = {
@@ -28,7 +29,7 @@ export function KanbanCard({ task }: { task: Task }) {
   const developers = task.developer
     .split(',')
     .map(d => d.trim())
-    .filter(d => d);
+    .filter(Boolean);
 
   return (
     <div
@@ -36,7 +37,7 @@ export function KanbanCard({ task }: { task: Task }) {
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-move rounded-lg bg-default-100 p-3 transition-all duration-300 hover:scale-105 hover:shadow-small">
+      className="cursor-move rounded-lg bg-default-100 p-3 outline-none transition-all duration-300 hover:scale-105 hover:shadow-small">
       <h4 className="mb-2 line-clamp-2">{task.title}</h4>
       <div className="mb-3 flex flex-col gap-1">
         <Chip color={priorityColors[task.priority]} size="sm">
@@ -49,9 +50,9 @@ export function KanbanCard({ task }: { task: Task }) {
       <div className="flex items-center justify-between">
         <Chip size="sm">{task['Estimated SP']} SP</Chip>
         <div className="flex h-auto w-max items-center justify-center">
-          {developers.map((dev, i) => (
+          {developers.slice(0, 3).map((dev, i) => (
             <div
-              key={i.toString()}
+              key={`${i + 1}-${dev}`}
               className="flex size-5 items-center justify-center overflow-hidden rounded-full bg-default align-middle text-foreground text-xs outline-solid outline-transparent ring-1 ring-default ring-offset-1 ring-offset-background transition-transform"
               title={dev}>
               {getInitials(dev)}
@@ -59,7 +60,7 @@ export function KanbanCard({ task }: { task: Task }) {
           ))}
           {developers.length > 3 && (
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 font-semibold text-gray-600 text-xs">
-              +{task.developer.length - 3}
+              +{developers.length - 3}
             </div>
           )}
         </div>

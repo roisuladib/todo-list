@@ -48,7 +48,7 @@ export default function TaskFilter({
             setDevelopers([..._selectedDevelopers, dev]);
           }
         }}
-        className="inline-flex h-8 rounded-lg bg-default-100 px-3 outline-none">
+        className="inline-flex h-8 cursor-pointer rounded-lg bg-default-100 px-3 outline-none">
         <option value="">Filter by developer</option>
         {developers.map(dev => (
           <option key={dev} value={dev}>
@@ -61,12 +61,12 @@ export default function TaskFilter({
           {selectedDevelopers?.map(dev => (
             <span
               key={dev}
-              className="flex items-center gap-1 rounded-lg bg-blue-100 px-2 py-1 text-blue-700 text-xs">
+              className="flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-primary text-xs">
               {dev}
               <button
                 type="button"
                 onClick={() => setDevelopers(selectedDevelopers?.filter(d => d !== dev))}
-                className="hover:text-blue-900">
+                className="cursor-pointer hover:text-blue-900">
                 ×
               </button>
             </span>

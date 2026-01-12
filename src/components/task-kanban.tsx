@@ -1,144 +1,107 @@
+import type { Task, TaskStatus } from '^/types';
+import type { DragEndEvent, DragStartEvent, UniqueIdentifier } from '@dnd-kit/core';
+
 import { useState } from 'react';
 
 import {
-  closestCorners,
   DndContext,
-  type DragEndEvent,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  type UniqueIdentifier,
-  useDraggable,
-  useDroppable,
+  pointerWithin,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import {
+  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { CircleCheckIcon, CircleDotDashedIcon, CircleDotIcon, CircleIcon } from 'lucide-react';
 
+import Droppable from './droppable';
 import { KanbanCard } from './kanban-card';
-import { Chip } from './ui/chip';
-import { type Task, TaskStatus } from '^/types';
-
-const boards: TaskStatus[] = [
-  TaskStatus.TODO,
-  TaskStatus.IN_PROGRESS,
-  TaskStatus.IN_REVIEW,
-  TaskStatus.PENDING_DEPLOY,
-  TaskStatus.DONE,
-  TaskStatus.STUCK,
-];
-
-const statusIconMap: Record<TaskStatus, React.ReactNode> = {
-  [TaskStatus.TODO]: <CircleIcon className="size-6 text-default" />,
-  [TaskStatus.IN_PROGRESS]: <CircleDotDashedIcon className="size-6 text-warning" />,
-  [TaskStatus.IN_REVIEW]: <CircleDotIcon className="size-6 text-secondary" />,
-  [TaskStatus.PENDING_DEPLOY]: <CircleDotIcon className="size-6 text-primary" />,
-  [TaskStatus.DONE]: <CircleCheckIcon className="size-6 text-success" />,
-  [TaskStatus.STUCK]: <CircleDotIcon className="size-6 text-danger" />,
-};
-
-type TasksState = {
-  [key in TaskStatus]: Task[];
-};
+import { statuses } from './task-view-switcher';
+import { useTaskStore } from '^/hooks/use-get-tasks';
 
 interface TaskKanbanProps {
   data: Task[];
-  onChange: (tasks: { $id: string; status: TaskStatus; position: number }[]) => void;
 }
 
-export default function TaskKanban({ data, onChange }: TaskKanbanProps) {
-  const [tasks, setTasks] = useState<TasksState>(() => {
-    const initialTasks: TasksState = {
-      [TaskStatus.TODO]: [],
-      [TaskStatus.IN_PROGRESS]: [],
-      [TaskStatus.IN_REVIEW]: [],
-      [TaskStatus.PENDING_DEPLOY]: [],
-      [TaskStatus.DONE]: [],
-      [TaskStatus.STUCK]: [],
-    };
-
-    data.forEach(task => {
-      initialTasks[task.status].push(task);
-    });
-
-    Object.keys(initialTasks).forEach(status => {
-      initialTasks[status as TaskStatus].sort((a, b) => a['Estimated SP'] - b['Estimated SP']);
-    });
-
-    return initialTasks;
-  });
-
+export default function TaskKanban({ data }: TaskKanbanProps) {
+  const { setTasks } = useTaskStore();
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 3 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 
-  const [parent, setParent] = useState<UniqueIdentifier | null>(null);
+  const [taskId, setTaskId] = useState<UniqueIdentifier | null>(null);
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { over } = event;
+  const handleDragStart = (event: DragStartEvent) => {
+    setTaskId(event.active.id);
+  };
 
-    setParent(over ? over.id : null);
+  function handleDragOver(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = Number(active.id);
+    const activeIndex = data.findIndex(t => t.id === activeId);
+    if (activeIndex === -1) return;
+
+    const activeTask = data[activeIndex];
+
+    const overData = over.data.current;
+    if (!overData) return;
+
+    const overStatus = overData.status as TaskStatus;
+
+    const updated = [...data];
+    updated[activeIndex] = {
+      ...activeTask,
+      status: overStatus,
+    };
+
+    const overIndex = data.findIndex(t => t.id === Number(over.id));
+    if (overIndex !== -1) {
+      setTasks(arrayMove(updated, activeIndex, overIndex));
+    } else {
+      setTasks(updated);
+    }
   }
 
-  function handleDragStart(event: DragEndEvent) {
-    const { active } = event;
 
-    setParent(active ? active.id : null);
-  }
+
+  const activeTask = taskId ? data.find(t => t.id === taskId) : null;
 
   return (
     <DndContext
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
       sensors={sensors}
-      collisionDetection={closestCorners}>
+      collisionDetection={pointerWithin}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}>
       <div className="scrollbar-hide flex w-full snap-x gap-4 overflow-x-auto p-4">
-        {boards.map(board => (
-          <Droppable key={board} id={board} title={board} count={tasks[board].length}>
-            <SortableContext
-              items={tasks[board].map(t => t)}
-              strategy={verticalListSortingStrategy}>
-              {tasks[board].map((task, index) => (
-                <KanbanCard key={index.toString()} task={task} />
-              ))}
-            </SortableContext>
-          </Droppable>
-        ))}
+        {statuses.map((status: TaskStatus) => {
+          const tasksInStatus = data.filter(t => t.status === status);
+
+          return (
+            <Droppable key={status} id={status} count={tasksInStatus.length}>
+              <SortableContext
+                items={tasksInStatus.map(t => t.id)}
+                strategy={verticalListSortingStrategy}>
+                {tasksInStatus.map(task => (
+                  <KanbanCard key={task.id} task={task} />
+                ))}
+              </SortableContext>
+            </Droppable>
+          );
+        })}
       </div>
+      <DragOverlay>{activeTask ? <KanbanCard task={activeTask} /> : null}</DragOverlay>
     </DndContext>
-  );
-}
-
-interface DroppableProps {
-  id: string;
-  children: React.ReactNode;
-  title: TaskStatus;
-  count: number;
-}
-
-function Droppable({ id, children, title, count }: DroppableProps) {
-  const { setNodeRef } = useDroppable({ id });
-
-  return (
-    <div ref={setNodeRef} className="shrink-0 snap-start scroll-ml-4">
-      <div className="flex h-full w-64 max-w-full flex-col gap-4 rounded-1.5xl p-4 shadow-small">
-        <div className="flex items-center gap-x-2">
-          {statusIconMap[title]}
-          <div className="font-medium text-base">{title}</div>
-          <Chip size="sm" color="primary" className="ml-auto">
-            {count}
-          </Chip>
-        </div>
-        {children}
-      </div>
-    </div>
   );
 }

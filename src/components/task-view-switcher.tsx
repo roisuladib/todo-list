@@ -17,6 +17,10 @@ import { useTaskStore } from '^/hooks/use-get-tasks';
 import { useTaskFilters } from '^/hooks/use-task-filters';
 import { type Task, TaskPriority, TaskStatus, TaskType } from '^/types';
 
+export const statuses = Object.keys(statusColors) as TaskStatus[];
+export const priorities = Object.keys(priorityColors) as TaskPriority[];
+export const types = Object.keys(typeColors) as TaskType[];
+
 export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[] }) {
   const { tasks, hasHydrated, setTasks, addTask } = useTaskStore();
 
@@ -31,8 +35,6 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
 
   const [view, setView] = useQueryState('task-view', { defaultValue: 'table' });
   const [{ status, developers: selectedDevelopers, search }, setTaskFilters] = useTaskFilters();
-
-  const handleTaskChange = () => {};
 
   const filteredTasks = tasks.filter(task => {
     const matchStatus = status ? task.status === status : true;
@@ -62,10 +64,6 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
     };
     addTask(newTask);
   };
-
-  const statuses = Object.keys(statusColors) as TaskStatus[];
-  const priorities = Object.keys(priorityColors) as TaskPriority[];
-  const types = Object.keys(typeColors) as TaskType[];
 
   const getPercentage = <K extends keyof Task>(field: K, value: Task[K]) => {
     const total = filteredTasks.length;
@@ -190,7 +188,7 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
       </Tab>
       <Tab key="kanban" title="Kanban" className="-mx-4">
         {renderTaskFilter}
-        <TaskKanban data={filteredTasks} onChange={handleTaskChange} />
+        <TaskKanban data={filteredTasks} />
       </Tab>
     </Tabs>
   );
