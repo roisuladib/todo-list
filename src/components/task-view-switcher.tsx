@@ -44,7 +44,7 @@ export default function TaskViewSwitcher({ initialTasks }: { initialTasks: Task[
       .map(d => d.trim().toLowerCase())
       .filter(Boolean);
     const matchDeveloper = selectedDevelopers?.length
-      ? selectedDevelopers.every(dev => taskDevelopers.includes(dev))
+      ? selectedDevelopers.every(dev => taskDevelopers.includes(dev.toLowerCase()))
       : true;
 
     const matchSearch = search ? task.title.toLowerCase().includes(search.toLowerCase()) : true;
