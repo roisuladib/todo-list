@@ -42,7 +42,6 @@ export function TaskTable<TData, TValue>({
     state: { sorting },
     meta: {
       updateData: (rowIndex: number, columnId: number, value: unknown) => {
-        console.log(rowIndex, columnId, value);
         const task = tasks[rowIndex];
         if (!task) return;
 
