@@ -74,7 +74,6 @@ export default function TaskKanban({ data }: TaskKanbanProps) {
     }
   }
 
-
   const activeTask = taskId ? data.find(t => t.id === taskId) : null;
 
   return (
